@@ -20,14 +20,14 @@ jobs:
     name: "Create Deployment"
     if: |
       github.event_name == 'pull_request' &&
-      contains(['opened', 'reopened', 'labeled', synchronize'], github.event.action) &&
+      contains(fromJson('["opened", "reopened", "labeled", "synchronize"]'), github.event.action) &&
       contains(github.event.pull_request.labels.*.name, 'deploy to test')
     runs-on: ubuntu-latest
     steps:
       - name: Cancel any other running deployment workflows
         uses: styfle/cancel-workflow-action@0.9.1
         with:
-          workflow_id: ${{ github.workflow }}
+          workflow_id: pull-request-deployment
           access_token: ${{ github.token }}
 
       - name: Create bot access token
@@ -43,13 +43,12 @@ jobs:
         uses: avakar/create-deployment@v1.0.2
         id: deployment
         with:
+          ref: ${{ github.head_ref }}
           auto_merge: false
+          required_contexts:
           environment: test
           transient_environment: true
-          auto_inactive: false # Since multiple PRs can be deployed to the "test" environment
-          status: pending
           description: "Deploy to test environment"
-          # log_url: # Github action job URL
         env:
           GITHUB_TOKEN: ${{ steps.bot_access.outputs.token }}
 
@@ -58,7 +57,7 @@ jobs:
     if: |
       github.event_name == 'pull_request' &&
       (
-        contains(['closed'], github.event.action) ||
+        github.event.action == 'closed' ||
         ! contains(github.event.pull_request.labels.*.name, 'deploy to test')
       )
     runs-on: ubuntu-latest
@@ -66,7 +65,7 @@ jobs:
       - name: Cancel any running deployment workflow
         uses: styfle/cancel-workflow-action@0.9.1
         with:
-          workflow_id: ${{ github.workflow }}
+          workflow_id: pull-request-deployment
           access_token: ${{ github.token }}
 
       - name: Find existing deployment
@@ -90,9 +89,9 @@ jobs:
         uses: avakar/set-deployment-status@v1.1.0
         with:
           deployment_id: steps.existing_deployment.outputs.result.id
-          status: inactive
+          state: inactive
         env:
-          GITHUB_TOKEN:: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
 
   deploy:
     name: "Deploy"
@@ -103,10 +102,11 @@ jobs:
       - name: Set deployment status to "in progress"
         uses: avakar/set-deployment-status@v1.1.0
         with:
-          status: in_progress
-          log_url: ${{ env.GITHUB_SERVER_URL }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          state: in_progress
+          auto_inactive: false # Since multiple PRs can be deployed to the "test" environment
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
-          GITHUB_TOKEN:: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: TODO Deploy
         run: sleep 30
@@ -114,15 +114,17 @@ jobs:
       - name: Set deployment status to "success"
         uses: avakar/set-deployment-status@v1.1.0
         with:
-          status: success
+          state: success
+          auto_inactive: false # Since multiple PRs can be deployed to the "test" environment
           environment_url: https://TODO-spicy-proton.azurewebsites.net/
         env:
-          GITHUB_TOKEN:: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Set deployment status to "failure"
         if: failure()
         uses: avakar/set-deployment-status@v1.1.0
         with:
-          status: failure
+          state: failure
+          auto_inactive: false # Since multiple PRs can be deployed to the "test" environment
         env:
-          GITHUB_TOKEN:: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
