@@ -8,6 +8,10 @@ The deployment object is created by the GitHub Actions workflow.
 GitHub specifically disallows the result of an Actions workflow run auth token from starting another workflow run.
 To work around this, the API calls that create the Deployment must use the credentials of a GitHub App (which we'll call a "bot").
 
+Create a GitHub App and create a private key for it.
+Add the app ID and the private key as secrets to the repository.
+And install the app on the repository.
+
 ## Test environments
 
 These are deployed from a pull request, where each pull request gets a unique deployment environment.
