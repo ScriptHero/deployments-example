@@ -68,6 +68,12 @@ jobs:
       )
     runs-on: ubuntu-latest
     steps:
+      - name: Generate deployment name
+        id: deployment_name
+        uses: ScriptHero/action-spicy-proton-generator@main
+        with:
+          name: #{{ github.head_ref }}
+
       - name: Cancel any running deployment workflow
         uses: styfle/cancel-workflow-action@0.9.1
         with:
@@ -105,6 +111,12 @@ jobs:
       github.event_name == 'deployment'
     runs-on: ubuntu-latest
     steps:
+      - name: Generate deployment name
+        id: deployment_name
+        uses: ScriptHero/action-spicy-proton-generator@main
+        with:
+          name: #{{ github.head_ref }}
+
       - name: Set deployment status to "in progress"
         uses: avakar/set-deployment-status@v1.1.0
         with:
@@ -120,7 +132,7 @@ jobs:
         uses: avakar/set-deployment-status@v1.1.0
         with:
           state: success
-          environment_url: https://TODO-${{ steps.deployment_name.outputs.result }}.azurewebsites.net/
+          environment_url: https://TODO-${{ github.event.deployment.environment }}.azurewebsites.net/
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
