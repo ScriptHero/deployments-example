@@ -20,7 +20,7 @@ jobs:
         id: deployment_name
         uses: ScriptHero/action-spicy-proton-generator@v1
         with:
-          name: #{{ github.head_ref }}
+          name: ${{ github.head_ref }}
 
       - name: Cancel any running deployment job
         uses: styfle/cancel-workflow-action@0.9.1
@@ -28,26 +28,40 @@ jobs:
           workflow_id: pull-request-deploy
           access_token: ${{ github.token }}
 
-      - name: Find existing deployment
-        id: existing_deployment
+      - name: Deactivate deployments
         uses: actions/github-script@v4
+        env:
+          ENVIRONMENT_NAME: ${{ steps.deployment_name.outputs.result }}
         with:
+          previews: ant-man
           script: |
+            const { BRANCH_NAME, ENVIRONMENT_NAME } = process.env;
+
             const deployments = await github.paginate(github.repos.listDeployments.endpoint({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              environment: "${{ steps.deployment_name.outputs.result }}",
-            }))
-            return deployments[0]
+              environment: ENVIRONMENT_NAME,
+            }));
+            const deploymentCount = deployments.length;
 
-      # - name: TODO Destroy deployed environment if there is one
-      #   if: steps.existing_deployment.outputs.result
+            if (deploymentCount < 1) {
+              console.log(`found no existing deployments for env ${ENVIRONMENT_NAME}`);
+              return;
+            }
 
-      - name: Deactivate deployment
+            const deadState = "inactive";
+            console.log(`found ${deploymentCount} existing deployments for ${ENVIRONMENT_NAME} environment, marking each ${deadState}`);
+
+            for (const deployment of deployments) {
+              await github.repos.createDeploymentStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                deployment_id: deployment.id,
+                state: deadState,
+              });
+            }
+
+      - name: TODO Destroy deployed environment if there is one
         if: steps.existing_deployment.outputs.result
-        uses: avakar/set-deployment-status@v1.1.0
-        with:
-          deployment_id: steps.existing_deployment.outputs.result.id
-          state: inactive
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          echo "TODO: something here"

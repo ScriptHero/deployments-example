@@ -14,7 +14,7 @@ jobs:
         id: deployment_name
         uses: ScriptHero/action-spicy-proton-generator@v1
         with:
-          name: #{{ github.head_ref }}
+          name: ${{ github.head_ref }}
 
       - name: Set deployment status to "in progress"
         uses: avakar/set-deployment-status@v1.1.0
