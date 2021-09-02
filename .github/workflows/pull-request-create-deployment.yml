@@ -21,7 +21,7 @@ jobs:
         id: deployment_name
         uses: ScriptHero/action-spicy-proton-generator@main
         with:
-          name: #{{ github.head_ref }}
+          name: ${{ github.head_ref }}
 
       - name: Cancel any running deployment job
         uses: styfle/cancel-workflow-action@0.9.1
