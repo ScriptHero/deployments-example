@@ -24,6 +24,12 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'deploy to test')
     runs-on: ubuntu-latest
     steps:
+      - name: Generate deployment name
+        id: deployment_name
+        uses: ScriptHero/action-spicy-proton-generator@main
+        with:
+          name: #{{ github.head_ref }}
+
       - name: Cancel any other running deployment workflows
         uses: styfle/cancel-workflow-action@0.9.1
         with:
@@ -46,9 +52,9 @@ jobs:
           ref: ${{ github.head_ref }}
           auto_merge: false
           required_contexts:
-          environment: test
+          environment: ${{ steps.deployment_name.outputs.result }}
           transient_environment: true
-          description: "Deploy to test environment"
+          description: "Deploy to ${{ steps.deployment_name.outputs.result }} environment"
         env:
           GITHUB_TOKEN: ${{ steps.bot_access.outputs.token }}
 
@@ -77,7 +83,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: context.sha,
-              environment: "test",
+              environment: "${{ steps.deployment_name.outputs.result }}",
             }))
             return deployments[0]
 
@@ -103,7 +109,6 @@ jobs:
         uses: avakar/set-deployment-status@v1.1.0
         with:
           state: in_progress
-          auto_inactive: false # Since multiple PRs can be deployed to the "test" environment
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -115,8 +120,7 @@ jobs:
         uses: avakar/set-deployment-status@v1.1.0
         with:
           state: success
-          auto_inactive: false # Since multiple PRs can be deployed to the "test" environment
-          environment_url: https://TODO-spicy-proton.azurewebsites.net/
+          environment_url: https://TODO-${{ steps.deployment_name.outputs.result }}.azurewebsites.net/
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -125,6 +129,5 @@ jobs:
         uses: avakar/set-deployment-status@v1.1.0
         with:
           state: failure
-          auto_inactive: false # Since multiple PRs can be deployed to the "test" environment
         env:
           GITHUB_TOKEN: ${{ github.token }}
