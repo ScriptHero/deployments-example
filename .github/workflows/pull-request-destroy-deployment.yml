@@ -13,7 +13,7 @@ jobs:
     name: "Destroy"
     if: |
       github.event.action == 'closed' ||
-      (!contains(github.event.pull_request.labels.*.name, 'deploy to test'))
+      (!contains(github.event.pull_request.labels.*.name, 'deploy to spicy-proton'))
     runs-on: ubuntu-latest
     steps:
       - name: Generate deployment name

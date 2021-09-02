@@ -16,9 +16,9 @@ And install the app on the repository.
 
 These are deployed from a pull request, where each pull request gets a unique deployment environment.
 
-- "Create" job: When a pull request is opened with the `deploy to test` label, or it is added later
+- "Create" job: When a pull request is opened with the `deploy to spicy-proton` label, or it is added later
   - creates a Deployment for the current commit
-- "Destroy" job: When a pull request is closed or the `deploy to test` label is removed
+- "Destroy" job: When a pull request is closed or the `deploy to spicy-proton` label is removed
   - any previous run of this workflow is canceled so that no deployment process completes
   - the Deployment is set to "inactive" state
 - "Deploy" job: When a Deployment is created
