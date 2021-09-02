@@ -1,0 +1,52 @@
+---
+
+name: PR Deployment
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - labeled
+      - synchronize
+
+jobs:
+  create:
+    name: "Create Deployment"
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'deploy to test')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate deployment name
+        id: deployment_name
+        uses: ScriptHero/action-spicy-proton-generator@main
+        with:
+          name: #{{ github.head_ref }}
+
+      - name: Cancel any running deployment job
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          workflow_id: pull-request-deploy
+          access_token: ${{ github.token }}
+
+      - name: Create bot access token
+        # We must use a bot to create the deployment.
+        # The workflow run auth token is not able to kick off other workflow runs.
+        id: bot_access
+        uses: getsentry/action-github-app-token@v1
+        with:
+          app_id: ${{ secrets.BOT_APP_ID }}
+          private_key: ${{ secrets.BOT_PRIVATE_PEM }}
+
+      - name: Create deployment
+        uses: avakar/create-deployment@v1.0.2
+        id: deployment
+        with:
+          ref: ${{ github.head_ref }}
+          auto_merge: false
+          required_contexts:
+          environment: ${{ steps.deployment_name.outputs.result }}
+          transient_environment: true
+          description: "Deploy to ${{ steps.deployment_name.outputs.result }} environment"
+        env:
+          GITHUB_TOKEN: ${{ steps.bot_access.outputs.token }}

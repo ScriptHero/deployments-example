@@ -1,0 +1,44 @@
+---
+
+name: PR Deployment
+
+on:
+  deployment:
+
+jobs:
+  deploy:
+    name: "Deploy"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate deployment name
+        id: deployment_name
+        uses: ScriptHero/action-spicy-proton-generator@main
+        with:
+          name: #{{ github.head_ref }}
+
+      - name: Set deployment status to "in progress"
+        uses: avakar/set-deployment-status@v1.1.0
+        with:
+          state: in_progress
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: TODO Deploy
+        run: sleep 30
+
+      - name: Set deployment status to "success"
+        uses: avakar/set-deployment-status@v1.1.0
+        with:
+          state: success
+          environment_url: https://TODO-${{ github.event.deployment.environment }}.azurewebsites.net/
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Set deployment status to "failure"
+        if: failure()
+        uses: avakar/set-deployment-status@v1.1.0
+        with:
+          state: failure
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

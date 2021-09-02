@@ -1,0 +1,52 @@
+---
+
+name: PR Deployment
+
+on:
+  pull_request:
+    types:
+      - closed
+      - unlabeled
+
+  destroy:
+    name: "Destroy"
+    if: |
+      github.event.action == 'closed' ||
+      ! contains(github.event.pull_request.labels.*.name, 'deploy to test')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate deployment name
+        id: deployment_name
+        uses: ScriptHero/action-spicy-proton-generator@main
+        with:
+          name: #{{ github.head_ref }}
+
+      - name: Cancel any running deployment job
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          workflow_id: pull-request-deploy
+          access_token: ${{ github.token }}
+
+      - name: Find existing deployment
+        id: existing_deployment
+        uses: actions/github-script@v4
+        with:
+          script: |
+            const deployments = await github.paginate(github.repos.listDeployments.endpoint({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              environment: "${{ steps.deployment_name.outputs.result }}",
+            }))
+            return deployments[0]
+
+      # - name: TODO Destroy deployed environment if there is one
+      #   if: steps.existing_deployment.outputs.result
+
+      - name: Deactivate deployment
+        if: steps.existing_deployment.outputs.result
+        uses: avakar/set-deployment-status@v1.1.0
+        with:
+          deployment_id: steps.existing_deployment.outputs.result.id
+          state: inactive
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
