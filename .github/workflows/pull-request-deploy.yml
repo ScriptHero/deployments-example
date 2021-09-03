@@ -32,6 +32,7 @@ jobs:
         uses: avakar/set-deployment-status@v1.1.0
         with:
           state: success
+          auto_inactive: false
           environment_url: https://TODO-${{ steps.deployment_name.outputs.result }}.azurewebsites.net/
         env:
           GITHUB_TOKEN: ${{ github.token }}
