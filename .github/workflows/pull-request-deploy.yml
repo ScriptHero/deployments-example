@@ -28,6 +28,47 @@ jobs:
         run: sleep 10
           # optimally this will return an output containing the site URL
 
+      - name: Deactivate previous deployments for this branch
+        uses: actions/github-script@v4
+        # Since we use the same "spicy-proton" environment for all branch deployments,
+        # we don't want all older deployments in the same environment to be deactivated
+        # on successful deployment. But we _do_ want the previous deployments in the same branch
+        # to be deactivated, since they point to a previous commit in the branch.
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+          THIS_DEPLOYMENT_ID: ${{ github.event.deployment.id}}
+        with:
+          previews: ant-man
+          script: |
+            const { BRANCH_NAME, THIS_DEPLOYMENT_ID } = process.env;
+
+            const allDeployments = await github.paginate(github.repos.listDeployments.endpoint({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: BRANCH_NAME,
+            }));
+            console.log(`found ${allDeployments.length} deployments for branch ${BRANCH_NAME} (including this one)`);
+
+            const deployments = allDeployments.filter(deployment => deployment.id != THIS_DEPLOYMENT_ID);
+            const deploymentCount = deployments.length;
+
+            if (deploymentCount < 1) {
+              console.log(`found no previous deployments for this branch`);
+              return;
+            }
+
+            const deadState = "inactive";
+            console.log(`found ${deploymentCount} previous deployments for this branch, marking each ${deadState}`);
+
+            for (const deployment of deployments) {
+              await github.repos.createDeploymentStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                deployment_id: deployment.id,
+                state: deadState,
+              });
+            }
+
       - name: Set deployment status to "success"
         uses: avakar/set-deployment-status@v1.1.0
         with:
