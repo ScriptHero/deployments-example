@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Generate deployment name
         id: deployment_name
-        uses: ScriptHero/action-spicy-proton-generator@main
+        uses: ScriptHero/action-spicy-proton-generator@v1
         with:
           name: ${{ github.head_ref }}
 
