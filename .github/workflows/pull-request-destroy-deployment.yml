@@ -31,7 +31,8 @@ jobs:
       - name: Deactivate deployments
         uses: actions/github-script@v4
         env:
-          ENVIRONMENT_NAME: ${{ steps.deployment_name.outputs.result }}
+          BRANCH_NAME: ${{ github.head_ref }}
+          ENVIRONMENT_NAME: spicy-proton
         with:
           previews: ant-man
           script: |
@@ -40,6 +41,7 @@ jobs:
             const deployments = await github.paginate(github.repos.listDeployments.endpoint({
               owner: context.repo.owner,
               repo: context.repo.repo,
+              ref: BRANCH_NAME,
               environment: ENVIRONMENT_NAME,
             }));
             const deploymentCount = deployments.length;
@@ -61,7 +63,6 @@ jobs:
               });
             }
 
-      - name: TODO Destroy deployed environment if there is one
-        if: steps.existing_deployment.outputs.result
+      - name: TODO Destroy deployed environment (e.g. Azure app/slot)
         run: |
           echo "TODO: something here"

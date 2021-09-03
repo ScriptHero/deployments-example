@@ -45,8 +45,8 @@ jobs:
           ref: ${{ github.head_ref }}
           auto_merge: false
           required_contexts:
-          environment: ${{ steps.deployment_name.outputs.result }}
+          environment: spicy-proton
           transient_environment: true
-          description: "Deploy to ${{ steps.deployment_name.outputs.result }} environment"
+          description: "Deploy to ${{ steps.deployment_name.outputs.result }}"
         env:
           GITHUB_TOKEN: ${{ steps.bot_access.outputs.token }}
