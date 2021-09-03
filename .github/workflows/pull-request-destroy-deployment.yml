@@ -1,6 +1,6 @@
 ---
 
-name: PR Deployment
+name: Destroy PR Deployment
 
 on:
   pull_request:

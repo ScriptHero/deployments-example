@@ -1,6 +1,6 @@
 ---
 
-name: PR Deployment
+name: Create PR Deployment
 
 on:
   pull_request:

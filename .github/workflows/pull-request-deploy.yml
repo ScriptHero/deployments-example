@@ -25,7 +25,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: TODO Deploy
-        run: sleep 30
+        run: sleep 10
+          # optimally this will return an output containing the site URL
 
       - name: Set deployment status to "success"
         uses: avakar/set-deployment-status@v1.1.0
