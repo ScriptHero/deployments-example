@@ -12,15 +12,17 @@ Create a GitHub App and create a private key for it.
 Add the app ID and the private key as secrets to the repository.
 And install the app on the repository.
 
-## Test environments
+## Preview deployments
 
-These are deployed from a pull request, where each pull request gets a unique deployment environment.
+These are deployed from a pull request,
+where each pull request gets a unique deployment name within the `preview` environment.
 
-- "Create" job: When a pull request is opened with the `deploy to preview` label, or it is added later
-  - creates a Deployment for the current commit
-- "Destroy" job: When a pull request is closed or the `deploy to preview` label is removed
-  - any previous run of this workflow is canceled so that no deployment process completes
-  - the Deployment is set to "inactive" state
+- "Create PR Deployment" job: When the `deploy to preview` label exists on a PR when it's opened or a new commit is pushed, or the label is added
+  - creates a Deployment for the PR branch's current commit
 - "Deploy" job: When a Deployment is created
   - deploys!
-  - updates the status of the deployment to indicate success or failure
+  - updates the status of the Deployment to indicate success or failure
+  - inactivates any previous Deployment of the same branch
+- "Destroy" job: When a pull request is closed, or the `deploy to preview` label is removed
+  - any previous run of this workflow is canceled so that no deployment process completes
+  - the Deployment is set to "inactive" state
