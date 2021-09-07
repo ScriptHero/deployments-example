@@ -10,7 +10,8 @@ jobs:
     name: "Deploy"
     runs-on: ubuntu-latest
     steps:
-      - name: Generate deployment name
+      - name: Generate preview deployment name
+        if: github.event.deployment.environment == "preview"
         id: deployment_name
         uses: ScriptHero/action-spicy-proton-generator@v1
         with:
@@ -28,9 +29,10 @@ jobs:
         run: sleep 10
           # optimally this will return an output containing the site URL
 
-      - name: Deactivate previous deployments for this branch
+      - name: Deactivate previous preview deployments for this branch
+        if: github.event.deployment.environment == "preview"
         uses: actions/github-script@v4
-        # Since we use the same "spicy-proton" environment for all branch deployments,
+        # Since we use the same "preview" environment for all branch deployments,
         # we don't want all older deployments in the same environment to be deactivated
         # on successful deployment. But we _do_ want the previous deployments in the same branch
         # to be deactivated, since they point to a previous commit in the branch.
@@ -69,7 +71,8 @@ jobs:
               });
             }
 
-      - name: Set deployment status to "success"
+      - name: Set preview deployment status to "success"
+        if: github.event.deployment.environment == "preview"
         uses: avakar/set-deployment-status@v1.1.0
         with:
           state: success

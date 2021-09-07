@@ -14,7 +14,7 @@ jobs:
   create:
     name: "Create Deployment"
     if: |
-      contains(github.event.pull_request.labels.*.name, 'deploy to spicy-proton')
+      contains(github.event.pull_request.labels.*.name, 'deploy to preview')
     runs-on: ubuntu-latest
     steps:
       - name: Generate deployment name
@@ -45,7 +45,7 @@ jobs:
           ref: ${{ github.head_ref }}
           auto_merge: false
           required_contexts:
-          environment: spicy-proton
+          environment: preview
           transient_environment: true
           description: "Deploy to ${{ steps.deployment_name.outputs.result }}"
         env:

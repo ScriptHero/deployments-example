@@ -13,7 +13,7 @@ jobs:
     name: "Destroy"
     if: |
       github.event.action == 'closed' ||
-      (!contains(github.event.pull_request.labels.*.name, 'deploy to spicy-proton'))
+      (!contains(github.event.pull_request.labels.*.name, 'deploy to preview'))
     runs-on: ubuntu-latest
     steps:
       - name: Generate deployment name
@@ -32,7 +32,7 @@ jobs:
         uses: actions/github-script@v4
         env:
           BRANCH_NAME: ${{ github.head_ref }}
-          ENVIRONMENT_NAME: spicy-proton
+          ENVIRONMENT_NAME: preview
         with:
           previews: ant-man
           script: |
